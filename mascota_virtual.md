@@ -55,4 +55,4 @@ Opcionales:
 - puedes agregar un método de presentación y despedida
 - si te animas podes agregar una interfaz para poder jugar con la mascota.
 
-[Volver al inicio](/readme.md)
+[Volver al inicio](/README.md)
