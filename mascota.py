@@ -9,4 +9,9 @@ class ImagenMascota:
 
 imagen = ImagenMascota()
 
-# print(imagen.feliz)
+if __name__ == "__main__":
+    print(imagen.inicio)
+    print(imagen.feliz)
+    print(imagen.disgustado)
+    print(imagen.triste)
+    print(imagen.muerto)
