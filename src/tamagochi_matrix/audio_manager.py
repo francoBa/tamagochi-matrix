@@ -1,6 +1,7 @@
 import os
 from threading import Thread
 from typing import Callable
+from importlib import resources
 
 
 def _playsound_fallback(path: str, block: bool = True):
@@ -8,41 +9,46 @@ def _playsound_fallback(path: str, block: bool = True):
     pass
 
 
-# Intentamos importar la función real. Si falla, usamos nuestra función falsa.
 try:
     from playsound import playsound as _playsound_real
 
     PLAYSOUND_AVAILABLE = True
-    # Asignamos la función real a nuestra variable de trabajo
     _playsound_func: Callable = _playsound_real
 except ImportError:
     PLAYSOUND_AVAILABLE = False
-    # Asignamos la función falsa a nuestra variable de trabajo
     _playsound_func: Callable = _playsound_fallback
 
-
-# Obtenemos la ruta a la carpeta de assets, sin importar desde dónde se ejecute el script.
-_ASSETS_PATH = os.path.join(os.path.dirname(__file__), "../../assets/sounds")
+# sin importar dónde esté instalado.
+_ASSETS_REF = resources.files("tamagochi_matrix") / "assets" / "sounds"
 
 
 def _play_sound(filename: str):
-    """Función interna para reproducir un sonido en un hilo separado."""
+    """Función interna para reproducir un sonido empaquetado."""
     if not PLAYSOUND_AVAILABLE:
         # Si la librería no está, usamos el bip del sistema como fallback.
         print("\a", end="", flush=True)
         return
 
-    path = os.path.join(_ASSETS_PATH, filename)
-    if os.path.exists(path):
-        # Ejecutamos el sonido en un hilo para que no bloquee el juego.
-        thread = Thread(target=_playsound_func, args=(path,), daemon=True)
-        thread.start()
-    else:
-        # Si el archivo de sonido no se encuentra, usamos el bip del sistema.
+    try:
+        # Usamos el 'context manager' para obtener una ruta de archivo utilizable
+        with resources.as_file(_ASSETS_REF / filename) as path:
+            # Creamos el hilo usando nuestra variable _playsound_func a prueba de linters
+            thread = Thread(
+                target=_playsound_func,
+                args=(str(path),),
+                kwargs={"block": False},
+                daemon=True,
+            )
+            thread.start()
+    except FileNotFoundError:
+        # Este error se lanza si el archivo (ej. "confirm.mp3") no existe
+        # dentro de la carpeta de assets del paquete.
+        print(
+            f"Advertencia: No se encontró el asset de sonido empaquetado '{filename}'."
+        )
         print("\a", end="", flush=True)
 
 
-# --- Funciones públicas que usaremos en el juego ---
 def play_confirm():
     """Sonido para una acción exitosa."""
     _play_sound("confirm.mp3")

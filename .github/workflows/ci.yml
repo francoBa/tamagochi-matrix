@@ -1,15 +1,15 @@
-name: Pruebas de Python
+name: Pruebas y Despliegue de Python
 
 on:
   push:
     branches: ["main"]
+    tags: ["v*.*.*"] # Se activa con etiquetas como v1.0.0, v1.1.0, etc.
   pull_request:
     branches: ["main"]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         python-version: ["3.9", "3.10", "3.11"]
@@ -26,12 +26,38 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Instala las dependencias de prueba (pytest)
-          pip install pytest
-          # Instala el proyecto en modo editable. Esto leerá pyproject.toml
-          # e instalará Pillow, pyfiglet, etc.
+          pip install pytest build
           pip install -e .
 
       - name: Run tests with pytest
         run: |
           pytest
+
+      - name: Build package
+        run: python -m build
+
+      # Guardamos los archivos construidos para que el trabajo de 'deploy' pueda usarlos
+      - name: Store distribution files
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-package-distributions
+          path: dist/
+
+  deploy:
+    needs: [build]
+    runs-on: ubuntu-latest
+
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Download distribution files
+        uses: actions/download-artifact@v3
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true
+          files: dist/*
