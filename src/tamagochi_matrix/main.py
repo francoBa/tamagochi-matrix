@@ -4,8 +4,10 @@ import os
 import sys
 import importlib  # <-- Módulo para importar código dinámicamente
 from pyfiglet import figlet_format
-from .consola import Style, Fore, Back
+from .consola import ansi
+from .animaciones_consola import mostrar_intro_matrix, mostrar_outro_matrix
 from .logica_mascota import MascotaLogica
+from .audio_manager import play_confirm, play_error, play_intro, play_game_over
 
 # Importamos la clase base para poder identificar a sus hijas
 from .disenios.base import MascotaDiseño
@@ -47,6 +49,7 @@ def cargar_disenios_disponibles():
 
 # --- Carga dinámica al iniciar el programa ---
 MASCOTAS_DISPONIBLES = cargar_disenios_disponibles()
+MASCOTAS_DISPONIBLES.append(DisenioOriginal)
 
 
 class MascotaVirtual:
@@ -77,26 +80,28 @@ class MascotaVirtual:
 
         if resultado == "comio":
             # Aquí podríamos añadir una animación de "comer" en el futuro
-            print(
-                f"\n{Fore.GREEN}{self.logica.nombre} ha sido alimentado.{Style.RESET_ALL}"
-            )
+            print(f"\n{ansi.GREEN}{self.logica.nombre} ha sido alimentado.{ansi.RESET}")
+            play_confirm()
         elif resultado == "lleno":
             # Aquí podríamos añadir una animación de "negarse a comer"
             print(
-                f"\n{Fore.YELLOW}{self.logica.nombre} está lleno y no quiere comer más.{Style.RESET_ALL}"
+                f"\n{ansi.YELLOW}{self.logica.nombre} está lleno y no quiere comer más.{ansi.RESET}"
             )
+            # play_error()
 
         time.sleep(1.5)
 
     def jugar(self):
         if self.logica.jugar():
             print(
-                f"\n{Fore.CYAN}¡Te diviertes jugando con {self.logica.nombre}!{Style.RESET_ALL}"
+                f"\n{ansi.CYAN}¡Te diviertes jugando con {self.logica.nombre}!{ansi.RESET}"
             )
+            play_confirm()
         else:
             print(
-                f"\n{Fore.YELLOW}{self.logica.nombre} tiene mucha hambre y no puede jugar.{Style.RESET_ALL}"
+                f"\n{ansi.YELLOW}{self.logica.nombre} tiene mucha hambre y no puede jugar.{ansi.RESET}"
             )
+            # play_error()
         time.sleep(1.5)
 
     def pasar_tiempo(self):
@@ -104,22 +109,32 @@ class MascotaVirtual:
 
     ### MEJORA: Nueva acción con animación ###
     def accion_especial(self):
-        """Realiza una acción especial animada."""
-        # Podríamos tener varias animaciones y elegir una al azar.
-        print(
-            f"\n{Fore.CYAN}¡{self.logica.nombre} está haciendo algo increíble!{Style.RESET_ALL}"
-        )
+        """
+        Gestiona la acción especial, consultando la lógica antes de animar.
+        """
+        # 1. Pregunta a la capa de lógica si la acción es posible.
+        if self.logica.accion_especial():
+            # 2. Si es posible, muestra el mensaje de éxito y la animación.
+            print(
+                f"\n{ansi.CYAN}¡{self.logica.nombre} realiza una acción especial!{ansi.RESET}\a"
+            )
 
-        # Necesitarás generar arte para "bailar1" y "bailar2" con tu script
-        # Si no existen, usará el diseño por defecto.
-        self.renderer.animar_secuencia(
-            self.logica,
-            secuencia_estados=["feliz", "bailar1", "feliz", "bailar2", "feliz"],
-            delays=[0.3, 0.2, 0.2, 0.2, 0.3],
-        )
-        # Las acciones especiales también pueden afectar las estadísticas
-        self.logica.felicidad = min(100, self.logica.felicidad + 5)
-        self.logica.hambre = min(100, self.logica.hambre + 5)
+            # La animación se ejecuta solo si la acción fue exitosa.
+            self.renderer.animar_secuencia(
+                self.logica,
+                secuencia_estados=["feliz", "accion1", "feliz", "accion2", "feliz"],
+                delays=[0.3, 0.2, 0.2, 0.2, 0.3],
+            )
+            play_confirm()
+        else:
+            # 3. Si no es posible, muestra un mensaje informativo.
+            print(
+                f"\n{ansi.YELLOW}{self.logica.nombre} no tiene energía o está demasiado triste para esto.{ansi.RESET}\a"
+            )
+            # play_error()
+
+        # La pausa ocurre en ambos casos.
+        time.sleep(1)
 
     @property
     def esta_viva(self):
@@ -128,27 +143,30 @@ class MascotaVirtual:
 
 # --- Punto de Entrada Principal ---
 def main():
-    ### TAREA FASE 3: TÍTULO CON PYFIGLET ###
-    titulo = figlet_format("Tamagochi Matrix", font="slant")
-    print(f"{Fore.GREEN}{titulo}{Style.RESET_ALL}")
-
-    nombre = input(
-        f"{Style.BRIGHT}Asigna un identificador a la nueva entidad: {Style.RESET_ALL}"
-    ).strip()
-    if not nombre:
-        nombre = "Neo"
+    mascota = None  # Inicializamos la variable para que exista en el 'finally'
 
     try:
+        play_intro()
+        mostrar_intro_matrix()
+        titulo = figlet_format("Tamagochi Matrix", font="slant")
+        print(f"\n{ansi.GREEN_BRIGHT}{titulo}{ansi.RESET}\n")
+
+        ### TU LÓGICA DE INPUT, AHORA DENTRO DEL TRY PRINCIPAL ###
+        nombre = (
+            input(
+                f"{ansi.BOLD}Asigna un identificador a la nueva entidad: {ansi.RESET}"
+            )
+            .strip()
+            .title()
+        )
+        if not nombre:
+            nombre = "Neo"
+
         mascota = MascotaVirtual(nombre)
-    except RuntimeError as e:
-        print(f"\n{Back.RED}{Fore.WHITE} ERROR DE INICIALIZACIÓN {Style.RESET_ALL} {e}")
-        return
 
-    try:
         while mascota.esta_viva:
             mascota.mostrar_estado()
 
-            ### TAREA FASE 3: MENÚ ENMARCADO ###
             opciones_menu = [
                 "[1] Alimentar",
                 "[2] Jugar",
@@ -160,10 +178,7 @@ def main():
             )
             print(menu_texto)
 
-            try:
-                opcion = input(f"{Style.BRIGHT}>> {Style.RESET_ALL}").strip()
-            except KeyboardInterrupt:
-                break
+            opcion = input(f"{ansi.BOLD}>> {ansi.RESET}").strip()
 
             match opcion:
                 case "1":
@@ -173,32 +188,41 @@ def main():
                 case "3":
                     mascota.accion_especial()
                 case "4":
-                    print(f"\n{Fore.CYAN}Cerrando conexión...{Style.RESET_ALL}")
                     break
                 case _:
-                    print(f"\n{Fore.YELLOW}Comando no reconocido.{Style.RESET_ALL}")
+                    print(f"\n{ansi.YELLOW}Comando no reconocido.{ansi.RESET}")
                     time.sleep(1)
 
             mascota.pasar_tiempo()
 
-    finally:
-        # Limpiamos la pantalla una última vez
-        print("\033c", end="")
+    except KeyboardInterrupt:
+        pass
 
-        if not mascota.esta_viva:
-            # Si la mascota murió, mostramos el estado final
+    except RuntimeError as e:
+        # Atrapa el error si no se encuentran diseños
+        print(
+            f"\n{ansi.BACKGROUND_RED}{ansi.WHITE} ERROR DE INICIALIZACIÓN {ansi.RESET} {e}"
+        )
+
+    finally:
+        print(ansi.CLEAR_SCREEN, end="")
+
+        # Comprobamos si la mascota llegó a crearse
+        if mascota and not mascota.esta_viva:
+            # Si la mascota murió
+            play_error()
             mascota.mostrar_estado()
             game_over_texto = figlet_format("CONEXION PERDIDA", font="small")
-            print(f"\n{Back.RED}{Fore.WHITE}{game_over_texto}{Style.RESET_ALL}")
+            print(f"\n{ansi.BACKGROUND_RED}{ansi.WHITE}{game_over_texto}{ansi.RESET}\a")
             print(f"La entidad {mascota.logica.nombre} se ha desestabilizado.")
+            time.sleep(3)
         else:
-            # Si el usuario salió voluntariamente
-            print(
-                f"\n{Fore.CYAN}Conexión terminada. ¡Hasta la próxima!{Style.RESET_ALL}\n"
-            )
+            # Si el usuario salió voluntariamente (opción 4 o Ctrl+C)
+            play_game_over()
+            mostrar_outro_matrix()
 
-        # Nos aseguramos de que el cursor sea visible al salir
-        print("\033[?25h", end="")
+        # Esta línea se ejecuta siempre al salir, restaurando el cursor.
+        print(ansi.SHOW_CURSOR, end="")
         sys.exit(0)
 
 
