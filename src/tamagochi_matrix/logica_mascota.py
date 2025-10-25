@@ -75,6 +75,21 @@ class MascotaLogica:
 
         return "comio"
 
+    def accion_especial(self) -> bool:
+        """
+        Aplica la lógica de la acción especial.
+        Devuelve True si se pudo realizar, False si no.
+        """
+        # Condición: No se puede hacer si la felicidad o el hambre son muy bajos.
+        if self.hambre > 80 or self.felicidad < 30:
+            return False
+
+        # Las acciones especiales también afectan las estadísticas
+        self.felicidad = min(100, self.felicidad + random.randint(5, 15))
+        self.hambre = min(100, self.hambre + random.randint(5, 10))
+
+        return True
+
     def jugar(self) -> bool:
         """
         Aplica la lógica de jugar con la mascota.

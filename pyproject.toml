@@ -20,7 +20,7 @@ classifiers = [
 dependencies = [
     "Pillow",
     "pyfiglet",
-    "colorama; sys_platform == 'win32'",
+    "playsound==1.2.2"
 ]
 
 [project.scripts]

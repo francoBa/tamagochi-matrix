@@ -2,76 +2,50 @@
 consola.py
 ----------
 Módulo auxiliar para salida en consola con colores y estilos.
-Funciona con o sin 'colorama' instalado.
 """
 
-try:
-    from colorama import just_fix_windows_console, Fore, Back, Style
+import random
+import time
+import sys
 
-    just_fix_windows_console()  # Corrige colores en Windows antiguos
-except ImportError:
-    # === Fallback manual con secuencias ANSI ===
-    class _ANSI:
-        """Base para definir códigos ANSI de colores."""
 
-        def __init__(self, mapping):
-            self._map = mapping
+class Ansi:
+    """Clase para manejar colores, estilos y control de la terminal usando códigos ANSI."""
 
-        def __getattr__(self, name):
-            return self._map.get(name, "")
+    # --- Estilos y Control ---
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    DIM = "\033[2m"
+    CLEAR_SCREEN = "\033[H\033[2J"  # Mueve el cursor a 1,1 y luego limpia
+    HIDE_CURSOR = "\033[?25l"
+    SHOW_CURSOR = "\033[?25h"
 
-    Fore = _ANSI(
-        {
-            "BLACK": "\033[30m",
-            "RED": "\033[31m",
-            "GREEN": "\033[32m",
-            "YELLOW": "\033[33m",
-            "BLUE": "\033[34m",
-            "MAGENTA": "\033[35m",
-            "CYAN": "\033[36m",
-            "WHITE": "\033[37m",
-            "RESET": "\033[39m",
-            "LIGHTBLACK_EX": "\033[90m",
-            "LIGHTRED_EX": "\033[91m",
-            "LIGHTGREEN_EX": "\033[92m",
-            "LIGHTYELLOW_EX": "\033[93m",
-            "LIGHTBLUE_EX": "\033[94m",
-            "LIGHTMAGENTA_EX": "\033[95m",
-            "LIGHTCYAN_EX": "\033[96m",
-            "LIGHTWHITE_EX": "\033[97m",
-        }
-    )
+    # --- Colores True Color (temática Matrix) ---
+    GREEN_BRIGHT = "\033[38;2;0;255;70m"
+    GREEN_DARK = "\033[38;2;0;150;50m"
+    WHITE = "\033[38;2;200;255;200m"
 
-    Back = _ANSI(
-        {
-            "BLACK": "\033[40m",
-            "RED": "\033[41m",
-            "GREEN": "\033[42m",
-            "YELLOW": "\033[43m",
-            "BLUE": "\033[44m",
-            "MAGENTA": "\033[45m",
-            "CYAN": "\033[46m",
-            "WHITE": "\033[47m",
-            "RESET": "\033[49m",
-            "LIGHTBLACK_EX": "\033[100m",
-            "LIGHTRED_EX": "\033[101m",
-            "LIGHTGREEN_EX": "\033[102m",
-            "LIGHTYELLOW_EX": "\033[103m",
-            "LIGHTBLUE_EX": "\033[104m",
-            "LIGHTMAGENTA_EX": "\033[105m",
-            "LIGHTCYAN_EX": "\033[106m",
-            "LIGHTWHITE_EX": "\033[107m",
-        }
-    )
+    # --- Colores de la Interfaz del Juego (los que ya usábamos) ---
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    RED = "\033[31m"
+    CYAN = "\033[36m"
+    BACKGROUND_RED = "\033[41m"
 
-    Style = _ANSI(
-        {
-            "DIM": "\033[2m",
-            "NORMAL": "\033[22m",
-            "BRIGHT": "\033[1m",
-            "RESET_ALL": "\033[0m",
-        }
-    )
+    @staticmethod
+    def cursor_to(row: int, col: int) -> str:
+        """Mueve el cursor a una fila y columna específicas."""
+        return f"\033[{row};{col}H"
 
-# === Secuencias básicas ===
-CLEAR_SCREEN = "\033c"
+    @staticmethod
+    def type_text(text: str, delay: float = 0.04):
+        """Imprime texto con un efecto de máquina de escribir."""
+        for char in text:
+            sys.stdout.write(char)
+            sys.stdout.flush()
+            time.sleep(delay + random.uniform(-0.01, 0.01))
+        print()
+
+
+# Instancia global para un acceso fácil
+ansi = Ansi()

@@ -1,4 +1,4 @@
-from .consola import Fore, Style, CLEAR_SCREEN
+from .consola import ansi
 from .logica_mascota import MascotaLogica
 from .disenios_mascota import MascotaDisenio
 
@@ -23,26 +23,26 @@ class ConsolaRenderer:
         Si 'invertido' es True, un valor bajo es bueno (verde) y uno alto es malo (rojo).
         """
         porcentaje = valor / 100.0
-        # Lógica de color normal (para Felicidad)
+        # Lógica de color RESET (para Felicidad)
         if not invertido:
             if porcentaje > 0.6:
-                color = Fore.GREEN
+                color = ansi.GREEN
             elif porcentaje > 0.3:
-                color = Fore.YELLOW
+                color = ansi.YELLOW
             else:
-                color = Fore.RED
+                color = ansi.RED
         # Lógica de color invertida (para Hambre)
         else:
             if porcentaje > 0.7:
-                color = Fore.RED  # Hambre alta es mala
+                color = ansi.RED  # Hambre alta es mala
             elif porcentaje > 0.4:
-                color = Fore.YELLOW
+                color = ansi.YELLOW
             else:
-                color = Fore.GREEN  # Hambre baja es buena
+                color = ansi.GREEN  # Hambre baja es buena
 
         relleno = int(porcentaje * ancho)
         barra = "█" * relleno + "░" * (ancho - relleno)
-        return f" {Style.BRIGHT}{nombre.ljust(9)}:{Style.NORMAL} {color}[{barra}]{Style.RESET_ALL} {valor}%"
+        return f" {ansi.BOLD}{nombre.ljust(9)}:{ansi.RESET} {color}[{barra}]{ansi.RESET} {valor}%"
 
     ### TAREA FASE 3: MENÚS ENMARCADOS ###
     def crear_menu_enmarcado(self, titulo: str, opciones: list, ancho: int = 40) -> str:
@@ -55,22 +55,22 @@ class ConsolaRenderer:
         return "\n".join(menu)
 
     def _dibujar_frame_completo(self, logica: MascotaLogica, info_estado: dict):
-        print(CLEAR_SCREEN, end="")
+        print(ansi.CLEAR_SCREEN, end="")
 
         arte_mascota = self.diseño.get_arte(info_estado["clave"])
-        print(f"{Fore.GREEN}{arte_mascota}{Style.RESET_ALL}")
+        print(f"{ansi.GREEN}{arte_mascota}{ansi.RESET}")
 
-        nombre_formateado = f"{Style.BRIGHT}Mascota: {logica.nombre}{Style.NORMAL}"
+        nombre_formateado = f"{ansi.BOLD}Mascota: {logica.nombre}{ansi.RESET}"
         print(f"{nombre_formateado.center(40)}")
 
         print("-" * 40)
         print(self._crear_barra_progreso(logica.hambre, "Hambre", invertido=True))
         print(
             self._crear_barra_progreso(logica.felicidad, "Felicidad")
-        )  # Felicidad usa la lógica normal
+        )  # Felicidad usa la lógica RESET
 
-        print(f" Estado: {Style.BRIGHT}{info_estado['texto']}{Style.NORMAL}")
-        print(f" {Fore.CYAN}Recomendación: {info_estado['hint']}{Style.RESET_ALL}")
+        print(f" Estado: {ansi.BOLD}{info_estado['texto']}{ansi.RESET}")
+        print(f" {ansi.CYAN}Recomendación: {info_estado['hint']}{ansi.RESET}")
         print("-" * 40)
 
     def mostrar_estado_estatico(self, logica: MascotaLogica):
@@ -99,7 +99,7 @@ class ConsolaRenderer:
 
 # --- Bloque de Prueba y Demostración ---
 if __name__ == "__main__":
-    print(f"{Style.BRIGHT}--- PRUEBAS DEL MÓDULO RENDERIZADOR ---{Style.RESET_ALL}")
+    print(f"{ansi.BOLD}--- PRUEBAS DEL MÓDULO RENDERIZADOR ---{ansi.RESET}")
     # --- PASO 1: Crear las dependencias que necesita el Renderizador ---
     # 1.1 - Necesitamos un objeto de Diseño. Usamos el que ya creamos.
     diseño_de_prueba = DisenioOriginal()
@@ -128,6 +128,4 @@ if __name__ == "__main__":
     renderizador.mostrar_estado_estatico(mascota_disgustada)
     input("\nPrueba completada. Presiona Enter para finalizar...")
 
-    print(
-        f"\n{Style.BRIGHT}--- FIN DE LAS PRUEBAS DEL RENDERIZADOR ---{Style.RESET_ALL}"
-    )
+    print(f"\n{ansi.BOLD}--- FIN DE LAS PRUEBAS DEL RENDERIZADOR ---{ansi.RESET}")

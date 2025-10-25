@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 # importado para testing
-from .consola import Fore, Style
+from .consola import ansi
 
 
 class MascotaDisenio(ABC):
@@ -35,7 +35,7 @@ class DisenioOriginal(MascotaDisenio):
 
 # --- Bloque de Prueba y Demostración ---
 if __name__ == "__main__":
-    print(f"{Style.BRIGHT}--- DEMOSTRACIÓN DEL MÓDULO DE DISEÑOS ---{Style.RESET_ALL}")
+    print(f"{ansi.BOLD}--- DEMOSTRACIÓN DEL MÓDULO DE DISEÑOS ---{ansi.RESET}")
 
     mi_diseño = DisenioOriginal()
 
@@ -49,10 +49,10 @@ if __name__ == "__main__":
     ]
 
     for estado in estados_a_probar:
-        print(f"\n{Fore.YELLOW}--- Probando estado: '{estado}' ---{Style.RESET_ALL}")
+        print(f"\n{ansi.YELLOW}--- Probando estado: '{estado}' ---{ansi.RESET}")
 
         arte = mi_diseño.get_arte(estado)
 
-        print(f"{Fore.GREEN}{arte}{Style.RESET_ALL}")
+        print(f"{ansi.GREEN}{arte}{ansi.RESET}")
 
-    print(f"\n{Style.BRIGHT}--- FIN DE LA DEMOSTRACIÓN ---{Style.RESET_ALL}")
+    print(f"\n{ansi.BOLD}--- FIN DE LA DEMOSTRACIÓN ---{ansi.RESET}")
