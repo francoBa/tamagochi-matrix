@@ -215,7 +215,7 @@ def main():
             game_over_texto = figlet_format("CONEXION PERDIDA", font="small")
             print(f"\n{ansi.BACKGROUND_RED}{ansi.WHITE}{game_over_texto}{ansi.RESET}\a")
             print(f"La entidad {mascota.logica.nombre} se ha desestabilizado.")
-            time.sleep(3)
+            time.sleep(3.5)
         else:
             # Si el usuario salió voluntariamente (opción 4 o Ctrl+C)
             play_game_over()

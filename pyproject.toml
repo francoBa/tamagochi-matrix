@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "tamagochi-matrix"
 version = "1.0.0"
 authors = [
-  { name="Tu Nombre", email="tu@email.com" },
+  { name="Franco Barreto", email="franco.barreto@gmail.com" },
 ]
 description = "Un juego de mascota virtual en la consola con estética de la Matrix."
 readme = "README.md"
@@ -25,3 +25,6 @@ dependencies = [
 
 [project.scripts]
 matrix-pet = "tamagochi_matrix.main:main"
+
+[tool.setuptools]
+include-package-data = true
