@@ -1,7 +1,9 @@
 import random
 import time
 import os
+import sys
 import importlib  # <-- Módulo para importar código dinámicamente
+from pyfiglet import figlet_format
 from .consola import Style, Fore, Back
 from .logica_mascota import MascotaLogica
 
@@ -100,6 +102,25 @@ class MascotaVirtual:
     def pasar_tiempo(self):
         self.logica.pasar_tiempo()
 
+    ### MEJORA: Nueva acción con animación ###
+    def accion_especial(self):
+        """Realiza una acción especial animada."""
+        # Podríamos tener varias animaciones y elegir una al azar.
+        print(
+            f"\n{Fore.CYAN}¡{self.logica.nombre} está haciendo algo increíble!{Style.RESET_ALL}"
+        )
+
+        # Necesitarás generar arte para "bailar1" y "bailar2" con tu script
+        # Si no existen, usará el diseño por defecto.
+        self.renderer.animar_secuencia(
+            self.logica,
+            secuencia_estados=["feliz", "bailar1", "feliz", "bailar2", "feliz"],
+            delays=[0.3, 0.2, 0.2, 0.2, 0.3],
+        )
+        # Las acciones especiales también pueden afectar las estadísticas
+        self.logica.felicidad = min(100, self.logica.felicidad + 5)
+        self.logica.hambre = min(100, self.logica.hambre + 5)
+
     @property
     def esta_viva(self):
         return self.logica.esta_viva
@@ -107,49 +128,79 @@ class MascotaVirtual:
 
 # --- Punto de Entrada Principal ---
 def main():
-    print("Iniciando Mascota Virtual...")
+    ### TAREA FASE 3: TÍTULO CON PYFIGLET ###
+    titulo = figlet_format("Tamagochi Matrix", font="slant")
+    print(f"{Fore.GREEN}{titulo}{Style.RESET_ALL}")
+
     nombre = input(
-        f"{Style.BRIGHT}Elige un nombre para tu mascota: {Style.RESET_ALL}"
+        f"{Style.BRIGHT}Asigna un identificador a la nueva entidad: {Style.RESET_ALL}"
     ).strip()
     if not nombre:
-        nombre = "Firulais"  # Usamos el nombre del ejercicio como defecto
+        nombre = "Neo"
 
-    ### ALINEACIÓN: Crea una instancia de la clase MascotaVirtual.
-    mascota = MascotaVirtual(nombre)
+    try:
+        mascota = MascotaVirtual(nombre)
+    except RuntimeError as e:
+        print(f"\n{Back.RED}{Fore.WHITE} ERROR DE INICIALIZACIÓN {Style.RESET_ALL} {e}")
+        return
 
-    ### FASE 2: BUCLE DE JUEGO ###
-    while mascota.esta_viva:
-        mascota.mostrar_estado()
+    try:
+        while mascota.esta_viva:
+            mascota.mostrar_estado()
 
-        # Mostramos el menú de opciones
-        print("\n¿Qué quieres hacer?")
-        print("[1] Alimentar  [2] Jugar  [3] Esperar  [4] Salir")
-        opcion = input(f"{Style.BRIGHT}>> {Style.RESET_ALL}").strip()
+            ### TAREA FASE 3: MENÚ ENMARCADO ###
+            opciones_menu = [
+                "[1] Alimentar",
+                "[2] Jugar",
+                "[3] Acción Especial",
+                "[4] Salir",
+            ]
+            menu_texto = mascota.renderer.crear_menu_enmarcado(
+                "Acciones Disponibles", opciones_menu
+            )
+            print(menu_texto)
 
-        match opcion:
-            case "1":
-                mascota.alimentar()
-            case "2":
-                mascota.jugar()
-            case "4":
-                print(f"\n{Fore.CYAN}¡Hasta la próxima!{Style.RESET_ALL}")
+            try:
+                opcion = input(f"{Style.BRIGHT}>> {Style.RESET_ALL}").strip()
+            except KeyboardInterrupt:
                 break
 
-        print("\nEl tiempo pasa...")
-        mascota.pasar_tiempo()
-        time.sleep(1)
+            match opcion:
+                case "1":
+                    mascota.alimentar()
+                case "2":
+                    mascota.jugar()
+                case "3":
+                    mascota.accion_especial()
+                case "4":
+                    print(f"\n{Fore.CYAN}Cerrando conexión...{Style.RESET_ALL}")
+                    break
+                case _:
+                    print(f"\n{Fore.YELLOW}Comando no reconocido.{Style.RESET_ALL}")
+                    time.sleep(1)
 
-    if not mascota.esta_viva:
-        mascota.mostrar_estado()
-        print(
-            f"\n{Back.RED}{Fore.WHITE} FIN DEL JUEGO {Style.RESET_ALL} Oh no... {nombre} se ha ido."
-        )
+            mascota.pasar_tiempo()
+
+    finally:
+        # Limpiamos la pantalla una última vez
+        print("\033c", end="")
+
+        if not mascota.esta_viva:
+            # Si la mascota murió, mostramos el estado final
+            mascota.mostrar_estado()
+            game_over_texto = figlet_format("CONEXION PERDIDA", font="small")
+            print(f"\n{Back.RED}{Fore.WHITE}{game_over_texto}{Style.RESET_ALL}")
+            print(f"La entidad {mascota.logica.nombre} se ha desestabilizado.")
+        else:
+            # Si el usuario salió voluntariamente
+            print(
+                f"\n{Fore.CYAN}Conexión terminada. ¡Hasta la próxima!{Style.RESET_ALL}\n"
+            )
+
+        # Nos aseguramos de que el cursor sea visible al salir
+        print("\033[?25h", end="")
+        sys.exit(0)
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        print(
-            f"\n\n{Fore.YELLOW}Salida exitosa del juego. Programa finalizado.{Style.RESET_ALL}"
-        )
+    main()

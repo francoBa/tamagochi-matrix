@@ -144,6 +144,15 @@ ENV/
 env.bak/
 venv.bak/
 
+
+# === Artefactos de Desarrollo ===
+
+# Ignorar la carpeta con las imágenes de origen
+/imagenes_fuente/
+
+# Ignorar los archivos de diseño generados temporalmente en la raíz
+*_generado.py
+
 # Spyder project settings
 .spyderproject
 .spyproject

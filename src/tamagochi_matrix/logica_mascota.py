@@ -10,22 +10,51 @@ class MascotaLogica:
         self.felicidad = 51
         self.esta_viva = True
 
+    def get_info_estado(self) -> dict:
+        """
+        Devuelve un diccionario con el estado clave, el texto descriptivo
+        y una recomendación para el jugador.
+        """
+        if not self.esta_viva:
+            return {
+                "clave": "muerto",
+                "texto": "Desconectado",
+                "hint": "No se puede hacer nada.",
+            }
+
+        if self.hambre >= 70 and self.felicidad <= 50:
+            return {
+                "clave": "disgustado",
+                "texto": "Crítico y Triste",
+                "hint": "¡Necesita comida urgentemente!",
+            }
+
+        if self.hambre >= 70:
+            return {
+                "clave": "disgustado",
+                "texto": "Hambre Crítica",
+                "hint": "Deberías alimentarlo.",
+            }
+
+        if self.felicidad <= 50:
+            return {
+                "clave": "triste",
+                "texto": "Triste",
+                "hint": "Juega con él para animarlo.",
+            }
+
+        return {
+            "clave": "feliz",
+            "texto": "Estable y Contento",
+            "hint": "Todo va bien. ¡Sigue así!",
+        }
+
     def get_estado_actual(self) -> str:
         """
         Determina el estado actual como una cadena de texto simple.
         ### ALINEACIÓN: Lógica de mostrar_estado.
         """
-        if not self.esta_viva:
-            return "muerto"
-
-        if self.hambre >= 70 and self.felicidad <= 50:
-            return "disgustado"
-        if self.hambre >= 70:
-            return "disgustado"
-        if self.felicidad <= 50:
-            return "triste"
-
-        return "feliz"
+        return self.get_info_estado()["clave"]
 
     def alimentar(self) -> str:
         """
