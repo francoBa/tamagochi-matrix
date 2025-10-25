@@ -27,11 +27,50 @@ class MascotaLogica:
 
         return "feliz"
 
-    def alimentar(self):
-        pass
+    def alimentar(self) -> str:
+        """
+        Aplica la lógica de alimentar a la mascota según los requisitos.
+        Devuelve un string indicando el resultado de la acción.
+        """
+        if self.hambre == 0:
+            return "lleno"
 
-    def jugar(self):
-        pass
+        self.hambre -= random.randint(10, 15)
+        if self.hambre < 0:
+            self.hambre = 0
+
+        # La felicidad disminuye solo si come.
+        self.felicidad -= random.randint(5, 10)
+        if self.felicidad < 0:
+            self.felicidad = 0
+
+        return "comio"
+
+    def jugar(self) -> bool:
+        """
+        Aplica la lógica de jugar con la mascota.
+        Devuelve True si pudo jugar, False si tenía demasiada hambre.
+        """
+        if self.hambre > 70:
+            return False
+
+        self.felicidad += random.randint(10, 25)
+        if self.felicidad > 100:
+            self.felicidad = 100
+
+        self.hambre += random.randint(10, 15)
+        if self.hambre > 100:
+            self.hambre = 100
+
+        return True
+
+    def pasar_tiempo(self):
+        """Simula el paso del tiempo, deteriorando las estadísticas."""
+        self.hambre = min(100, self.hambre + random.randint(1, 3))
+        self.felicidad = max(0, self.felicidad - random.randint(1, 2))
+
+        if self.hambre == 100 or self.felicidad == 0:
+            self.esta_viva = False
 
 
 # --- Bloque de Prueba y Demostración ---
