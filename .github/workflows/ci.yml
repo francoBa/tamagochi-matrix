@@ -3,12 +3,12 @@ name: Pruebas y Despliegue de Python
 on:
   push:
     branches: ["main"]
-    tags: ["v*.*.*"] # Se activa con etiquetas como v1.0.0, v1.1.0, etc.
+    tags: ["v*.*.*"]
   pull_request:
     branches: ["main"]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -26,38 +26,41 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest build
+          pip install pytest
           pip install -e .
 
       - name: Run tests with pytest
         run: |
           pytest
 
-      - name: Build package
-        run: python -m build
-
-      # Guardamos los archivos construidos para que el trabajo de 'deploy' pueda usarlos
-      - name: Store distribution files
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-package-distributions
-          path: dist/
-
   deploy:
-    needs: [build]
+    needs: [test]
     runs-on: ubuntu-latest
 
+    # Solo se ejecuta si el evento es un push a una etiqueta
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
 
+    # Permisos para escribir en las releases
     permissions:
       contents: write
 
     steps:
-      - name: Download distribution files
-        uses: actions/download-artifact@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Usamos una versión de Python estable para construir el paquete
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
         with:
-          name: python-package-distributions
-          path: dist/
+          python-version: "3.10"
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+
+      - name: Build package
+        run: python -m build
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
