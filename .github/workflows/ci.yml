@@ -1,0 +1,37 @@
+name: Pruebas de Python
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Instala las dependencias de prueba (pytest)
+          pip install pytest
+          # Instala el proyecto en modo editable. Esto leerá pyproject.toml
+          # e instalará Pillow, pyfiglet, etc.
+          pip install -e .
+
+      - name: Run tests with pytest
+        run: |
+          pytest
