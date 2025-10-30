@@ -1,25 +1,37 @@
-import os
+# import os
 from threading import Thread
-from typing import Callable
+
+# from typing import Callable
 from importlib import resources
 
 
-def _playsound_fallback(path: str, block: bool = True):
-    """Función de reemplazo que no hace nada si 'playsound' no está instalado."""
-    pass
+# def _playsound_fallback(path: str, block: bool = True):
+#     """Función de reemplazo que no hace nada si 'playsound' no está instalado."""
+#     pass
 
 
 try:
     from playsound import playsound as _playsound_real
 
     PLAYSOUND_AVAILABLE = True
-    _playsound_func: Callable = _playsound_real
+    # _playsound_func: Callable = _playsound_real
 except ImportError:
     PLAYSOUND_AVAILABLE = False
-    _playsound_func: Callable = _playsound_fallback
+    # _playsound_func: Callable = _playsound_fallback
 
 # sin importar dónde esté instalado.
 _ASSETS_REF = resources.files("tamagochi_matrix") / "assets" / "sounds"
+
+
+def _safe_play_sound(path: str):
+    """
+    Función envoltorio que llama a la función real de playsound
+    y captura la excepción específica que esperamos en entornos headless y sin sonido.
+    """
+    try:
+        _playsound_real(path, block=False)
+    except NotImplementedError:
+        pass
 
 
 def _play_sound(filename: str):
@@ -34,9 +46,10 @@ def _play_sound(filename: str):
         with resources.as_file(_ASSETS_REF / filename) as path:
             # Creamos el hilo usando nuestra variable _playsound_func a prueba de linters
             thread = Thread(
-                target=_playsound_func,
+                # target=_playsound_func,
+                target=_safe_play_sound,
                 args=(str(path),),
-                kwargs={"block": False},
+                # kwargs={"block": False},
                 daemon=True,
             )
             thread.start()
